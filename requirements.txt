@@ -1,5 +1,9 @@
-numpy
-pandas
-matplotlib
-seaborn
-scikit-learn
+This file lists the Python packages required for the CovidSurvivalSpan project. These dependencies include:
+
+numpy: A fundamental package for numerical computations.
+pandas: Provides data structures and data analysis tools.
+matplotlib: A plotting library for creating static, animated, and interactive visualizations.
+seaborn: A statistical data visualization library based on matplotlib.
+kaggle: A package for accessing Kaggle datasets and competitions.
+binder: Used for launching the project in an interactive environment via Binder.
+Make sure to install these packages using pip install -r requirements.txt to set up your environment.
