@@ -11,7 +11,7 @@ with open('model.pkl', 'rb') as file:
 
 # Function to load the dataset without caching
 def load_data():
-    data = pd.read_csv('Covid Data(1).csv')
+    data = pd.read_csv(r'C:\Users\asind\CovidSurvivalSpan\Covid Data(1).csv')
     return data
 
 # Load data
