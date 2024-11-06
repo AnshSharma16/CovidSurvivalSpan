@@ -95,7 +95,7 @@ importance_df = importance_df.sort_values(by='Importance', ascending=False)
 
 # Plot the feature importance
 plt.figure(figsize=(10, 6))
-sns.barplot(x='Importance', y='Feature', data=importance_df, palette='viridis')
+sns.barplot(x='Importance', y='Feature', data=importance_df, palette='viridis', hue=None)
 plt.title("Feature Importance in Survival Prediction")
 st.pyplot(plt)
 
