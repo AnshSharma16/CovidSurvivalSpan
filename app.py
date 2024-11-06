@@ -100,8 +100,5 @@ plt.title("Feature Importance in Survival Prediction")
 st.pyplot(plt)
 
 
-    
-
-
 
 
