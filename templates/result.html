@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/favicon.ico">
+    <title>Prediction Result</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .charts img {
+            width: 100%;
+            height: auto;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="result-message" style="color: blue;">
+            {% if prediction == 0 %}
+                Congratulations! The patient is likely to survive!
+            {% else %}
+                Unfortunately, the patient is likely to not survive.
+            {% endif %}
+        </h1>
+
+        <h2>Charts:</h2>
+        <div class="charts">
+            <img src="/static/typevsage.png" alt="Patient Type vs Age">
+            <img src="/static/deathvsage.png" alt="Death vs Age">
+            <img src="/static/hipervsdeath.png" alt="Hypertension vs Death">
+            <img src="/static/class.png" alt="Class Distribution">
+            <img src="/static/kde.png" alt="KDE Plot">
+            <img src="/static/piedead.png" alt="Death Pie Chart">
+        </div>
+
+        <a href="/" class="back-button">Go Back to Input Form</a>
+    </div>
+</body>
+
+</html>
+
+
+
+
+
+
+

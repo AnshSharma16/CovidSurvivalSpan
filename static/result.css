@@ -1,0 +1,18 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    text-align: center;
+    background-color: #f0f0f0;
+}
+
+.success {
+    color: green;
+    font-weight: bold;
+    font-size: 24px;
+}
+
+.failure {
+    color: red;
+    font-weight: bold;
+    font-size: 24px;
+}
