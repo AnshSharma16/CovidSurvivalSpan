@@ -8,10 +8,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
+# Load the trained model
 with open('C:\\Users\\asind\\CovidSurvivalSpan\\model (1).pkl', 'rb') as file:
     model = pickle.load(file)
-
-
 
 # Function to load the dataset without caching
 @st.cache_data
@@ -22,241 +21,213 @@ def load_data():
 # Load data
 data = load_data().sample(1000)
 
-# Streamlit app title and description
-st.title("Patient Survival Prediction")
-st.write("This app predicts the likelihood of patient survival based on various health features.")
+# Input form for prediction
+def prediction_model():
+    st.header("Prediction Model")
+    st.write("Fill in the patient details below to predict survival status.")
 
-# Display dataset and correlation heatmap
-if st.checkbox("Show Dataset"):
-    st.write(data)
+    # Input form
+    inputs = {
+        'USMER': st.radio("USMER (0=First level, 1=Second level, 2=Third level)", [0, 1, 2]),
+        'MEDICAL_UNIT': st.slider("Medical Unit (Type of institution from National Health System)", 0, 12),
+        'SEX': st.radio("Sex (0=Female, 1=Male)", [0, 1]),
+        'PATIENT_TYPE': st.radio("Patient Type (0=Not Hospitalized, 1=Hospitalized)", [0, 1]),
+        'PNEUMONIA': st.radio("Pneumonia (0=No, 1=Yes)", [0, 1]),
+        'AGE': st.slider("Age", 0, 120),
+        'PREGNANT': st.radio("Pregnant (0=No, 1=Yes)", [0, 1]),
+        'DIABETES': st.radio("Diabetes (0=No, 1=Yes)", [0, 1]),
+        'COPD': st.radio("COPD (0=No, 1=Yes)", [0, 1]),
+        'ASTHMA': st.radio("Asthma (0=No, 1=Yes)", [0, 1]),
+        'INMSUPR': st.radio("Immunosuppressed (0=No, 1=Yes)", [0, 1]),
+        'HIPERTENSION': st.radio("Hypertension (0=No, 1=Yes)", [0, 1]),
+        'OTHER_DISEASE': st.radio("Other Disease (0=No, 1=Yes)", [0, 1]),
+        'CARDIOVASCULAR': st.radio("Cardiovascular Disease (0=No, 1=Yes)", [0, 1]),
+        'OBESITY': st.radio("Obesity (0=No, 1=Yes)", [0, 1]),
+        'RENAL_CHRONIC': st.radio("Chronic Kidney Disease (0=No, 1=Yes)", [0, 1]),
+        'TOBACCO': st.radio("Tobacco Use (0=No, 1=Yes)", [0, 1]),
+        'CLASIFFICATION_FINAL': st.slider("Classification Final", 0, 10)
+    }
 
-# Correlation heatmap
-if st.checkbox("Show Correlation Heatmap"):
-    plt.figure(figsize=(12, 8))
-    sns.heatmap(data.corr(), annot=True, cmap='coolwarm')
-    st.pyplot(plt)
+    # Save inputs to session state
+    st.session_state.inputs = inputs
 
-# Age distribution histogram
-if st.checkbox("Show Age Distribution"):
-    plt.figure(figsize=(6, 4))
-    sns.histplot(data['AGE'], kde=True, bins=30, color='skyblue')
-    plt.title("Age Distribution of Patients")
-    plt.xlabel("Age")
-    plt.ylabel("Frequency")
-    st.pyplot(plt)
+    # Prepare input features as DataFrame
+    features = pd.DataFrame({k: [v] for k, v in inputs.items()})
 
-# Gender Distribution Pie Chart
-st.subheader("Gender Distribution")
-gender_counts = data['SEX'].value_counts()
-gender_labels = ['Female', 'Male']
-fig_gender = px.pie(values=gender_counts, names=gender_labels, title="Gender Distribution of Patients")
-st.plotly_chart(fig_gender)
+    # Prediction button
+    if st.button("Predict Survival"):
+        # Predict using the model
+        prediction = model.predict(features)
 
-# Patient Type Distribution Pie Chart
-st.subheader("Patient Type Distribution")
-patient_type_counts = data['PATIENT_TYPE'].value_counts()
-patient_type_labels = ['Not Hospitalized', 'Hospitalized']
-fig_patient_type = px.pie(values=patient_type_counts, names=patient_type_labels, title="Patient Type Distribution")
-st.plotly_chart(fig_patient_type)
+        # Display result
+        if prediction[0] == 0:
+            st.success("The model predicts: Patient is alive")
+        else:
+            st.error("The model predicts: Patient is deceased")
 
-# Survival vs. Death Pie Chart
-st.subheader("Survival vs. Death Distribution")
-death_counts = data['DEATH'].value_counts()
-death_labels = ['Alive', 'Deceased']
-fig_death = px.pie(values=death_counts, names=death_labels, title="Survival vs. Death Distribution")
-st.plotly_chart(fig_death)
+def eda_section():
+    st.header("Exploratory Data Analysis (EDA)")
 
-# Patient Type vs. Age Bar Plot
-st.subheader("Patient Type vs. Age")
-fig_age_patient_type = px.bar(data, x='PATIENT_TYPE', y='AGE', 
-                              color='PATIENT_TYPE', 
-                              labels={'PATIENT_TYPE': 'Patient Type', 'AGE': 'Age'},
-                              title="Patient Type vs. Age Distribution",
-                              category_orders={'PATIENT_TYPE': [0, 1]},
-                              color_discrete_map={0: 'blue', 1: 'green'})
-st.plotly_chart(fig_age_patient_type)
+    # Age Distribution Histogram
+    if st.checkbox("Show Age Distribution"):
+        plt.figure(figsize=(6, 4))
+        sns.histplot(data['AGE'], kde=True, bins=30, color='skyblue')
+        plt.title("Age Distribution of Patients")
+        plt.xlabel("Age")
+        plt.ylabel("Frequency")
+        st.pyplot(plt)
 
-# Age Distribution for Deceased Patients Bar Plot
-st.subheader("Age Distribution for Deceased Patients")
-deceased_data = data[data['DEATH'] == 1]
-fig_death_age = px.histogram(deceased_data, x='AGE', nbins=30, 
-                             title="Age Distribution for Deceased Patients", 
-                             color_discrete_sequence=['red'])
-st.plotly_chart(fig_death_age)
+    # Gender Distribution Pie Chart
+    st.subheader("Gender Distribution")
+    gender_counts = data['SEX'].value_counts()
+    gender_labels = ['Female', 'Male']
+    fig_gender = px.pie(values=gender_counts, names=gender_labels, title="Gender Distribution of Patients")
+    st.plotly_chart(fig_gender)
 
-# Hypertension vs. Death Count Plot
-st.subheader("Hypertension vs. Death Count")
-fig_hypertension_death = sns.countplot(x='HIPERTENSION', hue='DEATH', data=data, palette='husl')
-plt.title("Hypertension vs. Death Count")
-plt.xlabel("Hypertension (0=No, 1=Yes)")
-plt.ylabel("Count")
-st.pyplot(plt.gcf())
-plt.clf()  # Clear the plot for next visualization
+    # Patient Type Distribution Pie Chart
+    st.subheader("Patient Type Distribution")
+    patient_type_counts = data['PATIENT_TYPE'].value_counts()
+    patient_type_labels = ['Not Hospitalized', 'Hospitalized']
+    fig_patient_type = px.pie(values=patient_type_counts, names=patient_type_labels, title="Patient Type Distribution")
+    st.plotly_chart(fig_patient_type)
 
-# Diabetes vs. Death Count Plot
-st.subheader("Diabetes vs. Death Count")
-fig_diabetes_death = sns.countplot(x='DIABETES', hue='DEATH', data=data, palette='husl')
-plt.title("Diabetes vs. Death Count")
-plt.xlabel("Diabetes (0=No, 1=Yes)")
-plt.ylabel("Count")
-st.pyplot(plt.gcf())
-plt.clf()  # Clear the plot for next visualization
+    # Survival vs. Death Pie Chart
+    st.subheader("Survival vs. Death Distribution")
+    death_counts = data['DEATH'].value_counts()
+    death_labels = ['Alive', 'Deceased']
+    fig_death = px.pie(values=death_counts, names=death_labels, title="Survival vs. Death Distribution")
+    st.plotly_chart(fig_death)
 
-# Sex vs. Death Count Plot
-st.subheader("Sex vs. Death Count")
-fig_sex_death = sns.countplot(x='SEX', hue='DEATH', data=data, palette='husl')
-plt.title("Sex vs. Death Count")
-plt.xlabel("Sex (0=Female, 1=Male)")
-plt.ylabel("Count")
-st.pyplot(plt.gcf())
-plt.clf()  # Clear the plot for next visualization
+    # Patient Type vs. Age Bar Plot
+    st.subheader("Patient Type vs. Age")
+    fig_age_patient_type = px.bar(
+        data, 
+        x='PATIENT_TYPE', 
+        y='AGE',
+        color='PATIENT_TYPE',
+        labels={'PATIENT_TYPE': 'Patient Type', 'AGE': 'Age'},
+        title="Patient Type vs. Age Distribution",
+        category_orders={'PATIENT_TYPE': [0, 1]},
+        color_discrete_map={0: 'blue', 1: 'green'}
+    )
+    st.plotly_chart(fig_age_patient_type)
 
-# Input fields for user data with sliders and radio buttons
-inputs = {
-    'USMER': st.radio(
-        "USMER (0=First level, 1=Second level, 2=Third level)", 
-        [0, 1, 2],
-        index=None  # default option can be None
-    ),
-    'MEDICAL_UNIT': st.slider(
-        "Medical Unit (Type of institution from National Health System)", 
-        0, 12, value=None
-    ),
-    'SEX': st.radio("Sex (0=Female, 1=Male)", [0, 1]),
-    'PATIENT_TYPE': st.radio(
-        "Patient Type (0=Not Hospitalized, 1=Hospitalization)", 
-        [0, 1],
-        index=None  # default option can be None
-    ),
-    'PNEUMONIA': st.radio("Pneumonia (0=No, 1=Yes)", [0, 1]),
-    'AGE': st.slider("Age", 0, 120, value=None),
-    'PREGNANT': st.radio("Pregnant (0=No, 1=Yes)", [0, 1]),
-    'DIABETES': st.radio("Diabetes (0=No, 1=Yes)", [0, 1]),
-    'COPD': st.radio("COPD (0=No, 1=Yes)", [0, 1]),
-    'ASTHMA': st.radio("Asthma (0=No, 1=Yes)", [0, 1]),
-    'INMSUPR': st.radio("Immunosuppressed (0=No, 1=Yes)", [0, 1]),
-    'HIPERTENSION': st.radio("Hypertension (0=No, 1=Yes)", [0, 1]),
-    'OTHER_DISEASE': st.radio("Other Disease (0=No, 1=Yes)", [0, 1]),
-    'CARDIOVASCULAR': st.radio("Cardiovascular Disease (0=No, 1=Yes)", [0, 1]),
-    'OBESITY': st.radio("Obesity (0=No, 1=Yes)", [0, 1]),
-    'RENAL_CHRONIC': st.radio("Chronic Kidney Disease (0=No, 1=Yes)", [0, 1]),
-    'TOBACCO': st.radio("Tobacco Use (0=No, 1=Yes)", [0, 1]),
-    'CLASIFFICATION_FINAL': st.slider("Classification Final", 0, 10, value=None)
-}
+    # Age Distribution for Deceased Patients Bar Plot
+    st.subheader("Age Distribution for Deceased Patients")
+    deceased_data = data[data['DEATH'] == 1]
+    fig_death_age = px.histogram(
+        deceased_data, 
+        x='AGE', 
+        nbins=30,
+        title="Age Distribution for Deceased Patients", 
+        color_discrete_sequence=['red']
+    )
+    st.plotly_chart(fig_death_age)
 
-# Prepare input features as DataFrame
-features = pd.DataFrame({k: [v] for k, v in inputs.items()})
+    # Hypertension vs. Death Count Plot
+    st.subheader("Hypertension vs. Death Count")
+    sns.countplot(x='HIPERTENSION', hue='DEATH', data=data, palette='husl')
+    plt.title("Hypertension vs. Death Count")
+    plt.xlabel("Hypertension (0=No, 1=Yes)")
+    plt.ylabel("Count")
+    st.pyplot(plt.gcf())
+    plt.clf()  # Clear the plot for the next visualization
 
-# Prediction button
-if st.button("Predict Survival"):
-    # Predict using the model
-    prediction = model.predict(features)
+    # Diabetes vs. Death Count Plot
+    st.subheader("Diabetes vs. Death Count")
+    sns.countplot(x='DIABETES', hue='DEATH', data=data, palette='husl')
+    plt.title("Diabetes vs. Death Count")
+    plt.xlabel("Diabetes (0=No, 1=Yes)")
+    plt.ylabel("Count")
+    st.pyplot(plt.gcf())
+    plt.clf()  # Clear the plot for the next visualization
 
-    # Display result
-    if prediction[0] == 0:
-        st.success("The model predicts: Patient is alive")
-    else:
-        st.error("The model predicts: Patient is deceased")
+    # Sex vs. Death Count Plot
+    st.subheader("Sex vs. Death Count")
+    sns.countplot(x='SEX', hue='DEATH', data=data, palette='husl')
+    plt.title("Sex vs. Death Count")
+    plt.xlabel("Sex (0=Female, 1=Male)")
+    plt.ylabel("Count")
+    st.pyplot(plt.gcf())
+    plt.clf()  # Clear the plot for the next visualization
 
-# Display patient-specific suggestions
-    st.subheader("Personalized Recommendations")
-    suggestions = []
+def display_heatmap(data):
+    # Correlation heatmap
+    if st.checkbox("Show Correlation Heatmap"):
+        plt.figure(figsize=(12, 8))
+        sns.heatmap(data.corr(), annot=True, cmap='coolwarm')
+        st.pyplot(plt)
 
-    # Add recommendations based on each feature
-    if inputs['SEX'] == 1:  # Male
-        suggestions.append("For males, maintaining a healthy lifestyle, including regular checkups, is essential.")
-    else:  # Female
-        suggestions.append("Women are encouraged to monitor health parameters and consult for regular screenings.")
+# Patient insights with radar chart
+def patient_insights():
+    st.header("Patient Insights")
+    if "inputs" not in st.session_state:
+        st.warning("Please fill out the prediction form first to view patient insights.")
+        return
 
-    if inputs['AGE'] > 60:
-        suggestions.append("Elderly patients should focus on strengthening immunity and avoiding exposure to infections.")
+    inputs = st.session_state.inputs
+    categories = list(inputs.keys())
+    values = list(inputs.values())
 
-    if inputs['TOBACCO'] == 1:
-        suggestions.append("As a smoker, it’s recommended to reduce or quit smoking to improve respiratory health.")
-    else:
-        suggestions.append("Maintain a smoke-free lifestyle for optimal lung health.")
+    # Determine dynamic range for radar chart
+    max_value = max(values) if values else 1
+    min_value = min(values) if values else 0
 
-    if inputs['DIABETES'] == 1:
-        suggestions.append("For patients with diabetes, managing blood sugar and following a balanced diet is crucial.")
+    # Create radar chart
+    fig_radar = go.Figure()
+    fig_radar.add_trace(go.Scatterpolar(
+        r=values,
+        theta=categories,
+        fill='toself',
+        name='Patient Profile'
+    ))
 
-    if inputs['OBESITY'] == 1:
-        suggestions.append("Consider a balanced diet and regular exercise to manage weight and reduce health risks.")
+    fig_radar.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[min_value, max_value]
+            )
+        ),
+        showlegend=False,
+        title="Patient Profile Radar Chart"
+    )
 
-    # Display all recommendations
-    for suggestion in suggestions:
-        st.write("- " + suggestion)
+    st.plotly_chart(fig_radar)
 
-# Risk factor analysis
-st.subheader("Risk Factor Analysis")
-st.write("The following chart shows the relative importance of each feature in predicting patient survival:")
+def display_dataset(data):
+    # Display dataset and correlation heatmap
+    if st.checkbox("Show Dataset"):
+        st.write(data)
 
-# Extract feature importance (coefficients) from the logistic regression model
-coefficients = model.coef_[0]
-feature_names = features.columns
 
-# Create a DataFrame to hold the feature names and their corresponding importance
-importance_df = pd.DataFrame({
-    'Feature': feature_names,
-    'Importance': np.abs(coefficients),  # Use absolute values to show magnitude
-    'Explanation': [
-        "Impact of USMER status on survival", "Medical unit's impact on survival",
-        "Sex as a factor in survival (0=Female, 1=Male)", "Patient type's impact (Returned home or Hospitalized)",
-        "Presence of Pneumonia", "Age as a risk factor", "Pregnancy status impact",
-        "Presence of Diabetes", "Presence of COPD", "Presence of Asthma",
-        "Immunosuppression status", "Presence of Hypertension", "Other diseases as risk factors",
-        "Cardiovascular disease impact", "Obesity's effect", "Chronic kidney disease impact",
-        "Tobacco use's effect", "Classification final category"
-    ]  # Add explanations for each feature here
-})
+# Navigation section
+def main():
+    st.sidebar.title("Navigation")
+    options = st.sidebar.radio("Select a section", ["Home", 'Dataset', "Prediction Model", "Patient Insights","Heatmap", "EDA",'About'])
 
-# Sort the features by importance
-importance_df = importance_df.sort_values(by='Importance', ascending=False)
+    if options == "Dataset":
+        st.header("Dataset")
+        st.write("The dataset used in this app contains health-related information of patients.")
+        display_dataset(data)
+    elif options == "Prediction Model":
+        prediction_model()
+    elif options == "EDA":
+        eda_section()
+    elif options == "Patient Insights":
+        patient_insights()
+    elif options == "Heatmap":
+        display_heatmap(data)
+    elif options == "Home":
+        st.title("Welcome to the Patient Survival Prediction App!")
+        st.write("Use the sidebar to navigate through the app.")
+    elif options == "About":
+        st.title("About")
+        st.write("""
+        This app predicts the survival status of patients based on health-related inputs.
+        It uses a trained logistic regression model to make predictions and provides visual
+        insights through radar charts.
+        """)
 
-# Plot with Plotly for hover tooltips
-fig = px.bar(importance_df, x='Importance', y='Feature', orientation='h',
-             hover_data={'Feature': True, 'Importance': True, 'Explanation': True},
-             title="Feature Importance in Survival Prediction")
-
-# Display the plot
-st.plotly_chart(fig)
-
-# Radar chart of patient profile
-st.subheader("Patient Profile (Radar Chart)")
-categories = list(inputs.keys())
-values = list(inputs.values())
-
-# Create radar chart
-fig_radar = go.Figure()
-
-# Add a trace for the patient profile
-fig_radar.add_trace(go.Scatterpolar(
-    r=values,
-    theta=categories,
-    fill='toself',
-    name='Patient Profile'
-))
-
-fig_radar.update_layout(
-    polar=dict(
-        radialaxis=dict(
-            visible=True,
-            range=[0, 1]  # Adjust range based on your input scale
-        )
-    ),
-    showlegend=False,
-    title="Radar Chart of Patient Profile"
-)
-
-# Display the radar chart
-st.plotly_chart(fig_radar)
-
-from sklearn.metrics import accuracy_score
-# Separate features and labels (assuming 'DEATH' is the label column)
-X = data.drop(columns=['DEATH'])
-y = data['DEATH']
-
-# Calculate accuracy on the dataset (you can use a separate validation/test set)
-y_pred = model.predict(X)
-accuracy = accuracy_score(y, y_pred)
-
-st.write(f"Model Accuracy: {accuracy * 100:.2f}%")
+if __name__ == "__main__":
+    main()
