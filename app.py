@@ -288,6 +288,7 @@ def patient_insights():
     radar_fill_color = "rgba(0, 123, 255, 0.4)"  # Semi-transparent blue
     radar_line_color = "rgb(0, 123, 255)"       # Solid blue
     background_color = "#f9f9f9"                # Light gray background
+    color='white'
 
     # Create radar chart
     fig_radar = go.Figure()
@@ -308,13 +309,13 @@ def patient_insights():
             angularaxis=dict(
                 showline=True,
                 linewidth=1,
-                linecolor="lightgray",
-                tickfont=dict(size=12, color="black")  # Adjust font size and color
+                linecolor="black",
+                tickfont=dict(size=12, color="white")  # Adjust font size and color
             ),
             radialaxis=dict(
                 visible=True,
                 range=[min_value, max_value],
-                gridcolor="lightgray",
+                gridcolor="black",
                 gridwidth=0.5,
                 tickfont=dict(size=12, color="black")  # Adjust font size and color
             )
@@ -324,7 +325,7 @@ def patient_insights():
         title=dict(
             text="Patient Profile Radar Chart",
             x=0.5,
-            font=dict(size=18, color="black")  # Title font adjustments
+            font=dict(size=18, color="white")  # Title font adjustments
         ),
         showlegend=False
     )
